@@ -1,0 +1,10 @@
+<Config>
+    <!-- 保护文件/目录(目录必须/结尾) -->
+    <ProtectedFile>/home/mysql/Projects/File_Protector/test/prot.txt</ProtectedFile>
+	<ProtectedFile>/home/mysql/Projects/File_Protector/test/prot2.txt</ProtectedFile>
+	<ProtectedFile>/home/mysql/Projects/File_Protector/test2/</ProtectedFile>
+    
+    <!-- 白名单进程 -->
+    <WhitelistProc>/home/mysql/Projects/File_Protector/test/test_prot</WhitelistProc>
+	<WhitelistProc>/usr/bin/cat</WhitelistProc>
+</Config>
