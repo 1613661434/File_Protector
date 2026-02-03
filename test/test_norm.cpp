@@ -5,8 +5,8 @@
 #include <string.h>
 
 // 测试文件路径
-#define PROT_FILE "/home/ol/MyFiles/Projects/File_Protector/test/prot.txt"
-#define NORM_FILE "/home/ol/MyFiles/Projects/File_Protector/test/norm.txt"
+#define PROT_FILE "/home/mysql/File_Protector/test/prot.txt"
+#define NORM_FILE "/home/mysql/File_Protector/test/norm.txt"
 
 int main()
 {

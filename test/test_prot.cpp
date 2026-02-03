@@ -5,7 +5,7 @@
 #include <string.h>
 
 // 测试文件路径
-#define PROT_FILE "/home/ol/MyFiles/Projects/File_Protector/test/prot.txt"
+#define PROT_FILE "/home/mysql/File_Protector/test/prot.txt"
 
 int main()
 {

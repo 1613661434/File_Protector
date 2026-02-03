@@ -28,9 +28,9 @@ using namespace std;
 vector<string> g_ProtectedFiles;
 vector<string> g_WhitelistProcs;
 atomic_bool g_bConfigLoaded(false);
-clogfile g_log;
-const string g_configPath = "/home/mysql/Projects/File_Protector/main/config.xml";
-const string g_logPath = "/home/mysql/Projects/File_Protector/main/file_protector.log";
+clogfile<recursive_spin_mutex> g_log;
+const string g_configPath = "/home/mysql/File_Protector/main/config.xml";
+const string g_logPath = "/home/mysql/File_Protector/main/file_protector.log";
 
 // ================================== <工具函数> ==================================
 // 获取当前进程绝对路径
@@ -54,6 +54,13 @@ string get_absolute_path(const string& path)
 bool is_path_protected(const string& path)
 {
     string abs_path = get_absolute_path(path);
+
+    if (abs_path == g_logPath)
+    {
+        printf("abs_path=%s\n", abs_path.c_str());
+        return false;
+    }
+
     for (const auto& protected_item : g_ProtectedFiles)
     {
         string abs_protected = get_absolute_path(protected_item);
@@ -106,7 +113,7 @@ void load_config()
     if (!g_bConfigLoaded.compare_exchange_strong(expected, true)) return;
 
     // 初始化日志
-    g_log.open(g_logPath, ios::app, false, true);
+    g_log.open(g_logPath, ios::app, true, 1, true);
     g_log.write("========== 开始加载配置 ==========\n");
     g_log.write("配置文件路径：%s\n", g_configPath);
 
@@ -175,15 +182,9 @@ extern "C" int open(const char* pathname, int flags, ...)
         }
     }
 
-    // 调试日志
-    g_log.write("进入open劫持：路径[%s]，进程[%s]\n",
-                pathname, get_current_proc_path());
-
     // 拦截逻辑
     bool protected_flag = is_path_protected(pathname);
     bool whitelist_flag = is_proc_whitelisted();
-    g_log.write("路径[%s]受保护：%d，进程[%s]在白名单：%d\n",
-                pathname, protected_flag, get_current_proc_path(), whitelist_flag);
 
     if (protected_flag)
     {
@@ -230,9 +231,6 @@ extern "C" int openat(int dirfd, const char* pathname, int flags, ...)
             return -1;
         }
     }
-
-    g_log.write("进入openat劫持：dirfd[%d]，路径[%s]，进程[%s]\n",
-                dirfd, pathname, get_current_proc_path());
 
     // 处理绝对路径
     string abs_path = pathname;
@@ -297,9 +295,6 @@ extern "C" int unlink(const char* pathname)
         }
     }
 
-    g_log.write("进入unlink劫持：路径[%s]，进程[%s]\n",
-                pathname, get_current_proc_path());
-
     // 拦截逻辑
     bool protected_flag = is_path_protected(pathname);
     bool whitelist_flag = is_proc_whitelisted();
@@ -349,9 +344,6 @@ extern "C" ssize_t write(int fd, const void* buf, size_t count)
     snprintf(path, sizeof(path), "/proc/self/fd/%d", fd);
     string file_path = get_absolute_path(path);
 
-    g_log.write("进入write劫持：FD[%d] → 文件[%s]，进程[%s]\n",
-                fd, file_path, get_current_proc_path());
-
     // 拦截逻辑
     bool protected_flag = is_path_protected(file_path);
     bool whitelist_flag = is_proc_whitelisted();
@@ -400,9 +392,6 @@ extern "C" ssize_t read(int fd, void* buf, size_t count)
     char path[PATH_MAX] = {0};
     snprintf(path, sizeof(path), "/proc/self/fd/%d", fd);
     string file_path = get_absolute_path(path);
-
-    g_log.write("进入read劫持：FD[%d] → 文件[%s]，进程[%s]\n",
-                fd, file_path, get_current_proc_path());
 
     // 拦截逻辑
     bool protected_flag = is_path_protected(file_path);

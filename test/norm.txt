@@ -1,2 +1,1 @@
 test norm file
-l file.
